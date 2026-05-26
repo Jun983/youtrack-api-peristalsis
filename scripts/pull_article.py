@@ -16,7 +16,7 @@ def main() -> int:
     )
     parser.add_argument(
         "article_id",
-        help="Article ID or number (e.g. 13 → {YOUTRACK_ARTICLE_PREFIX}-13, or full XAC-13)",
+        help="Article ID or number (e.g. 13 → XAC-A-13, XAC-13 → XAC-A-13, or full XAC-A-13)",
     )
     parser.add_argument(
         "-o",

@@ -34,9 +34,10 @@ YouTrack **기술 자료**는 REST API의 [Articles](https://www.jetbrains.com/h
 
 ```bash
 python scripts/pull_article.py 13
-# → API 조회 ID: XAC-13, 저장: {YOUTRACK_DOCS_DIR}/XAC-13.md
+# → API 조회 ID: XAC-A-13, 저장: {YOUTRACK_DOCS_DIR}/XAC-A-13.md
 
-python scripts/pull_article.py XAC-13
+python scripts/pull_article.py XAC-A-13
+python scripts/pull_article.py XAC-13        # XAC-A-13 으로 자동 변환
 python scripts/pull_article.py 13 -o ./docs/custom-name.md
 ```
 
