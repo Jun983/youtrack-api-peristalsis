@@ -93,3 +93,29 @@ class KnowledgeBaseSync:
                 content=md.content,
                 parent_article_id=parent,
             )
+
+    def update_article(
+        self,
+        file_path: Path,
+        *,
+        article_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Update an existing YouTrack article from a local markdown file."""
+        md = read_article_file(file_path)
+
+        resolved_id = article_id or md.id_readable
+        if not resolved_id:
+            raise ValueError(
+                "Article ID is required. Set 'id_readable' in markdown frontmatter "
+                "or pass --article-id argument."
+            )
+
+        resolved_id = self.resolve_article_id(resolved_id)
+
+        with YouTrackClient(self._settings) as http:
+            articles = ArticlesClient(http)
+            return articles.update(
+                resolved_id,
+                summary=md.summary,
+                content=md.content,
+            )

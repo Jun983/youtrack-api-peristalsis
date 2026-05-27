@@ -41,7 +41,7 @@ python scripts/pull_article.py XAC-13        # XAC-A-13 으로 자동 변환
 python scripts/pull_article.py 13 -o ./docs/custom-name.md
 ```
 
-### 2. 로컬 md → 기술 자료 작성 (push, 생성만)
+### 2. 로컬 md → 기술 자료 작성 (push, 신규 생성)
 
 ```bash
 python scripts/push_article.py ./docs/new-article.md
@@ -64,7 +64,32 @@ parent_article: NP-A-7
 
 `summary`는 필수입니다. `project` / `parent_article`은 생략 시 `.env`의 `YOUTRACK_PROJECT`, `YOUTRACK_PARENT_ARTICLE`을 사용합니다.
 
-pull로 받은 파일에는 `id_readable`, `article_id` 등이 frontmatter에 포함되며, push는 **새 문서 생성**만 지원합니다 (수정·삭제 미구현).
+### 3. 로컬 md → 기술 자료 수정 (update)
+
+pull로 받은 파일(또는 `id_readable` frontmatter가 있는 파일)을 수정 후 YouTrack에 반영합니다.
+
+```bash
+python scripts/update_article.py ./docs/XAC-A-13.md
+# → frontmatter의 id_readable(XAC-A-13) 기준으로 summary·content 수정
+
+python scripts/update_article.py ./docs/XAC-A-13.md --article-id XAC-A-13
+# → --article-id 로 대상 지정 (frontmatter 값 무시)
+```
+
+update 대상 파일의 frontmatter 예시:
+
+```markdown
+---
+id_readable: XAC-A-13
+summary: 수정할 제목
+---
+
+## 수정된 본문
+
+변경 내용...
+```
+
+`id_readable`이 frontmatter에 없으면 `--article-id` 인자가 필수입니다.
 
 ## 개발
 

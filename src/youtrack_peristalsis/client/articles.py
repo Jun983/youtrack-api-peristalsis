@@ -54,6 +54,29 @@ class ArticlesClient:
 
         return created
 
+    def update(
+        self,
+        article_id: str,
+        *,
+        summary: str | None = None,
+        content: str | None = None,
+    ) -> dict[str, Any]:
+        body: dict[str, Any] = {}
+        if summary is not None:
+            body["summary"] = summary
+        if content is not None:
+            body["content"] = content
+
+        if not body:
+            raise ValueError("At least one of summary or content must be provided")
+
+        response = self._client.post(
+            f"/articles/{article_id}",
+            params={"fields": _ARTICLE_FIELDS},
+            json=body,
+        )
+        return self._parse(response)
+
     def _link_as_child(self, parent_article_id: str, child_db_id: str) -> None:
         response = self._client.post(
             f"/articles/{parent_article_id}/childArticles",
