@@ -62,6 +62,27 @@ class KnowledgeBaseSync:
         write_article_file(path, md)
         return path
 
+    def pull_all(
+        self,
+        *,
+        query: str | None = None,
+    ) -> list[Path]:
+        """Fetch all YouTrack articles matching the query and save as markdown files."""
+        if query is None and self._settings.article_prefix:
+            query = f"project: {self._settings.article_prefix}"
+
+        with YouTrackClient(self._settings) as http:
+            articles = ArticlesClient(http)
+            all_articles = articles.list(query=query)
+
+        paths: list[Path] = []
+        for article in all_articles:
+            md = article_to_markdown(article)
+            path = resolve_output_path(self._settings.docs_dir, article)
+            write_article_file(path, md)
+            paths.append(path)
+        return paths
+
     def push_article(
         self,
         file_path: Path,
