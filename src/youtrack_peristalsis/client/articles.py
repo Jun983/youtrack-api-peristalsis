@@ -19,6 +19,30 @@ class ArticlesClient:
     def __init__(self, client: YouTrackClient) -> None:
         self._client = client
 
+    def list(
+        self,
+        *,
+        query: str | None = None,
+        top: int = 100,
+    ) -> list[dict[str, Any]]:
+        results: list[dict[str, Any]] = []
+        skip = 0
+        while True:
+            params: dict[str, Any] = {
+                "fields": _ARTICLE_FIELDS,
+                "$top": top,
+                "$skip": skip,
+            }
+            if query:
+                params["query"] = query
+            response = self._client.get("/articles", params=params)
+            batch = self._parse_list(response)
+            results.extend(batch)
+            if len(batch) < top:
+                break
+            skip += top
+        return results
+
     def get(self, article_id: str) -> dict[str, Any]:
         response = self._client.get(
             f"/articles/{article_id}",
@@ -93,6 +117,20 @@ class ArticlesClient:
 
     @staticmethod
     def _parse(response: httpx.Response) -> dict[str, Any]:
+        if response.is_success:
+            return response.json()
+
+        message = response.text
+        try:
+            payload = response.json()
+            if isinstance(payload, dict):
+                message = payload.get("error_description") or payload.get("error") or message
+        except ValueError:
+            pass
+        raise YouTrackAPIError(response.status_code, message)
+
+    @staticmethod
+    def _parse_list(response: httpx.Response) -> list[dict[str, Any]]:
         if response.is_success:
             return response.json()
 
