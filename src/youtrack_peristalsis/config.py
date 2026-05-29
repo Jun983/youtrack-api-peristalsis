@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -21,11 +19,6 @@ class Settings(BaseSettings):
     youtrack_token: str = Field(
         ...,
         description="Permanent token (perm:...)",
-    )
-    docs_dir: Path = Field(
-        default=Path("./docs"),
-        alias="YOUTRACK_DOCS_DIR",
-        description="Local directory for synced markdown files",
     )
     article_prefix: str | None = Field(
         default=None,

@@ -22,7 +22,8 @@ def main() -> int:
         "-o",
         "--output",
         type=Path,
-        help="Output file path (default: {YOUTRACK_DOCS_DIR}/{idReadable}.md)",
+        required=True,
+        help="Output file path (required)",
     )
     args = parser.parse_args()
 

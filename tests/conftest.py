@@ -5,4 +5,6 @@ import pytest
 def sample_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("YOUTRACK_BASE_URL", "https://example.youtrack.cloud")
     monkeypatch.setenv("YOUTRACK_TOKEN", "perm:test-token")
-    monkeypatch.setenv("YOUTRACK_DOCS_DIR", "/tmp/youtrack-docs-test")
+    monkeypatch.delenv("YOUTRACK_PROJECT", raising=False)
+    monkeypatch.delenv("YOUTRACK_ARTICLE_PREFIX", raising=False)
+    monkeypatch.delenv("YOUTRACK_PARENT_ARTICLE", raising=False)

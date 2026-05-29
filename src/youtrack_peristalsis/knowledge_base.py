@@ -26,16 +26,15 @@ def article_to_markdown(article: dict[str, Any]) -> ArticleMarkdown:
 
 
 def resolve_output_path(
-    docs_dir: Path,
     article: dict[str, Any],
-    output: Path | None = None,
+    output: Path,
 ) -> Path:
-    if output is not None:
-        return output
-    id_readable = article.get("idReadable") or article.get("id")
-    if not id_readable:
-        raise ValueError("Article has no idReadable or id for default filename")
-    return docs_dir / f"{id_readable}.md"
+    if output.is_dir():
+        id_readable = article.get("idReadable") or article.get("id")
+        if not id_readable:
+            raise ValueError("Article has no idReadable or id for default filename")
+        return output / f"{id_readable}.md"
+    return output
 
 
 class KnowledgeBaseSync:
@@ -49,7 +48,7 @@ class KnowledgeBaseSync:
         self,
         article_id: str,
         *,
-        output: Path | None = None,
+        output: Path,
     ) -> Path:
         """Fetch a YouTrack article and save it as a markdown file."""
         resolved_id = self.resolve_article_id(article_id)
@@ -58,7 +57,7 @@ class KnowledgeBaseSync:
             article = articles.get(resolved_id)
 
         md = article_to_markdown(article)
-        path = resolve_output_path(self._settings.docs_dir, article, output)
+        path = resolve_output_path(article=article, output=output)
         write_article_file(path, md)
         return path
 
@@ -66,6 +65,7 @@ class KnowledgeBaseSync:
         self,
         *,
         query: str | None = None,
+        output_dir: Path,
     ) -> list[Path]:
         """Fetch all YouTrack articles matching the query and save as markdown files."""
         if query is None and self._settings.article_prefix:
@@ -78,7 +78,7 @@ class KnowledgeBaseSync:
         paths: list[Path] = []
         for article in all_articles:
             md = article_to_markdown(article)
-            path = resolve_output_path(self._settings.docs_dir, article)
+            path = resolve_output_path(article=article, output=output_dir)
             write_article_file(path, md)
             paths.append(path)
         return paths
