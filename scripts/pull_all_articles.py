@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 
 from youtrack_peristalsis.knowledge_base import KnowledgeBaseSync
 
@@ -18,10 +19,17 @@ def main() -> int:
         "--query",
         help="YouTrack query string (default: project: {YOUTRACK_ARTICLE_PREFIX})",
     )
+    parser.add_argument(
+        "-d",
+        "--output-dir",
+        type=Path,
+        required=True,
+        help="Output directory (required)",
+    )
     args = parser.parse_args()
 
     sync = KnowledgeBaseSync()
-    paths = sync.pull_all(query=args.query)
+    paths = sync.pull_all(query=args.query, output_dir=args.output_dir)
     for path in paths:
         print(f"Saved: {path}")
     print(f"\n총 {len(paths)}개 문서 저장 완료")

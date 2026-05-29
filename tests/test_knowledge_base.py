@@ -24,28 +24,34 @@ def test_article_to_markdown() -> None:
     assert md.parent_article == "NP-A-7"
 
 
-def test_pull_article(tmp_path: Path, sample_settings: None, monkeypatch) -> None:
-    monkeypatch.setenv("YOUTRACK_DOCS_DIR", str(tmp_path))
+def test_pull_article(tmp_path: Path, sample_settings: None) -> None:
     mock_get = MagicMock(return_value=SAMPLE_ARTICLE)
 
     with patch("youtrack_peristalsis.knowledge_base.ArticlesClient") as client_cls:
         client_cls.return_value.get = mock_get
         with patch("youtrack_peristalsis.knowledge_base.YouTrackClient"):
-            path = KnowledgeBaseSync().pull_article("NP-A-1")
+            path = KnowledgeBaseSync().pull_article("NP-A-1", output=tmp_path / "article.md")
 
-    assert path == tmp_path / "NP-A-1.md"
+    assert path == tmp_path / "article.md"
     assert path.read_text(encoding="utf-8").startswith("---")
     mock_get.assert_called_once_with("NP-A-1")
 
 
-def test_push_article_requires_project(tmp_path: Path, sample_settings: None) -> None:
+def test_push_article_requires_project(tmp_path: Path) -> None:
+    from youtrack_peristalsis.config import Settings
+
+    settings = Settings(
+        youtrack_base_url="https://example.youtrack.cloud",
+        youtrack_token="perm:test-token",
+        _env_file=None,
+    )
     file_path = tmp_path / "new.md"
     write_article_file(
         file_path,
         ArticleMarkdown(summary="New Doc", content="Content only."),
     )
     with pytest.raises(ValueError, match="Project"):
-        KnowledgeBaseSync().push_article(file_path)
+        KnowledgeBaseSync(settings=settings).push_article(file_path)
 
 
 def test_push_article_creates(tmp_path: Path, sample_settings: None, monkeypatch) -> None:

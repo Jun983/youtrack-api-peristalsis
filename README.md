@@ -31,14 +31,15 @@ YouTrack **기술 자료**는 REST API의 [Articles](https://www.jetbrains.com/h
 ### 1. 문서 조회 → 로컬 md 저장 (pull)
 
 `.env`에 `YOUTRACK_ARTICLE_PREFIX=XAC`를 설정하면 문서 번호만 넘겨도 됩니다.
+`-o` / `-d` 는 필수 인자입니다.
 
 ```bash
-python scripts/pull_article.py 13
-# → API 조회 ID: XAC-A-13, 저장: {YOUTRACK_DOCS_DIR}/XAC-A-13.md
+# 단건 pull (-o 필수)
+python scripts/pull_article.py 13 -o ./docs/XAC-A-13.md
 
-python scripts/pull_article.py XAC-A-13
-python scripts/pull_article.py XAC-13        # XAC-A-13 으로 자동 변환
-python scripts/pull_article.py 13 -o ./docs/custom-name.md
+# 전체 pull (-d 필수)
+python scripts/pull_all_articles.py -d ./docs/
+python scripts/pull_all_articles.py -q "project: XAC" -d ./docs/
 ```
 
 ### 2. 로컬 md → 기술 자료 작성 (push, 신규 생성)
