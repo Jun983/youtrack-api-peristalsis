@@ -8,3 +8,5 @@ def sample_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("YOUTRACK_PROJECT", raising=False)
     monkeypatch.delenv("YOUTRACK_ARTICLE_PREFIX", raising=False)
     monkeypatch.delenv("YOUTRACK_PARENT_ARTICLE", raising=False)
+    monkeypatch.delenv("YOUTRACK_ISSUE_PROJECT", raising=False)
+    monkeypatch.delenv("YOUTRACK_ISSUE_PREFIX", raising=False)

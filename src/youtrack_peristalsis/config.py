@@ -35,6 +35,16 @@ class Settings(BaseSettings):
         alias="YOUTRACK_PARENT_ARTICLE",
         description="Default parent article idReadable for sub-articles (e.g. NP-A-1)",
     )
+    default_issue_project: str | None = Field(
+        default=None,
+        alias="YOUTRACK_ISSUE_PROJECT",
+        description="Default project shortName for new issues (e.g. XAC)",
+    )
+    issue_prefix: str | None = Field(
+        default=None,
+        alias="YOUTRACK_ISSUE_PREFIX",
+        description="Issue id prefix (e.g. XAC for XAC-42). Used when pulling by number.",
+    )
 
     @property
     def api_base(self) -> str:
