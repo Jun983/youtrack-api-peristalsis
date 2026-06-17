@@ -7,6 +7,16 @@ from youtrack_peristalsis.config import Settings
 from youtrack_peristalsis.issue_format import IssueMarkdown, write_issue_file
 from youtrack_peristalsis.issues_sync import IssueSync, issue_to_markdown
 
+SAMPLE_COMMENTS = [
+    {
+        "id": "4-1",
+        "text": "This is a comment.",
+        "created": 1700000000000,
+        "updated": 1700000000000,
+        "author": {"id": "1-1", "name": "Alice"},
+    },
+]
+
 SAMPLE_ISSUE = {
     "id": "2-42",
     "idReadable": "XAC-42",
@@ -208,6 +218,39 @@ def test_update_issue_with_id_arg(tmp_path: Path, sample_settings: None) -> None
         summary="Updated summary",
         description="Updated description.",
     )
+
+
+def test_pull_issue_with_comments(tmp_path: Path, sample_settings: None) -> None:
+    mock_get = MagicMock(return_value=SAMPLE_ISSUE)
+    mock_list_comments = MagicMock(return_value=SAMPLE_COMMENTS)
+
+    with patch("youtrack_peristalsis.issues_sync.IssuesClient") as client_cls:
+        client_cls.return_value.get = mock_get
+        client_cls.return_value.list_comments = mock_list_comments
+        with patch("youtrack_peristalsis.issues_sync.YouTrackClient"):
+            path = IssueSync().pull_issue("XAC-42", output=tmp_path, with_comments=True)
+
+    assert path == tmp_path / "XAC-42.md"
+    content = path.read_text(encoding="utf-8")
+    assert "## 코멘트" in content
+    assert "Alice" in content
+    assert "This is a comment." in content
+    mock_list_comments.assert_called_once_with("XAC-42")
+
+
+def test_pull_issue_without_comments_by_default(tmp_path: Path, sample_settings: None) -> None:
+    mock_get = MagicMock(return_value=SAMPLE_ISSUE)
+    mock_list_comments = MagicMock()
+
+    with patch("youtrack_peristalsis.issues_sync.IssuesClient") as client_cls:
+        client_cls.return_value.get = mock_get
+        client_cls.return_value.list_comments = mock_list_comments
+        with patch("youtrack_peristalsis.issues_sync.YouTrackClient"):
+            path = IssueSync().pull_issue("XAC-42", output=tmp_path)
+
+    content = path.read_text(encoding="utf-8")
+    assert "## 코멘트" not in content
+    mock_list_comments.assert_not_called()
 
 
 def test_update_issue_requires_id(tmp_path: Path) -> None:

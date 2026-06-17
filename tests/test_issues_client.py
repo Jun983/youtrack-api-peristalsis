@@ -5,6 +5,23 @@ from youtrack_peristalsis.client.base import YouTrackClient
 from youtrack_peristalsis.client.issues import IssuesClient
 from youtrack_peristalsis.exceptions import YouTrackAPIError
 
+SAMPLE_COMMENTS = [
+    {
+        "id": "4-1",
+        "text": "This is a comment.",
+        "created": 1700000000000,
+        "updated": 1700000000000,
+        "author": {"id": "1-1", "name": "Alice"},
+    },
+    {
+        "id": "4-2",
+        "text": "Another comment.",
+        "created": 1700001000000,
+        "updated": 1700001000000,
+        "author": {"id": "1-2", "name": "Bob"},
+    },
+]
+
 SAMPLE_ISSUE = {
     "id": "2-42",
     "idReadable": "XAC-42",
@@ -178,6 +195,37 @@ def test_get_issue_raises_on_error(sample_settings: None) -> None:
     with base:
         with pytest.raises(YouTrackAPIError, match="404"):
             IssuesClient(base).get("XAC-999")
+
+
+def test_list_comments(sample_settings: None) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path.endswith("/api/issues/XAC-42/comments")
+        assert "fields" in str(request.url)
+        return httpx.Response(200, json=SAMPLE_COMMENTS)
+
+    base, client = _make_client(handler)
+    with base:
+        comments = client.list_comments("XAC-42")
+
+    assert len(comments) == 2
+    assert comments[0]["text"] == "This is a comment."
+    assert comments[0]["author"]["name"] == "Alice"
+    assert comments[1]["author"]["name"] == "Bob"
+
+
+def test_list_comments_raises_on_error(sample_settings: None) -> None:
+    transport = httpx.MockTransport(
+        lambda _: httpx.Response(404, json={"error": "Not Found"}),
+    )
+    base = YouTrackClient()
+    base._client = httpx.Client(
+        base_url=base._settings.api_base,
+        transport=transport,
+        headers=base._client.headers,
+    )
+    with base:
+        with pytest.raises(YouTrackAPIError, match="404"):
+            IssuesClient(base).list_comments("XAC-999")
 
 
 def test_create_issue_raises_on_error(sample_settings: None) -> None:

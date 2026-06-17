@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -19,6 +21,7 @@ class IssueMarkdown:
     assignee: str | None = None
     priority: str | None = None
     issue_type: str | None = None
+    comments: tuple[dict[str, Any], ...] = field(default_factory=tuple)
 
     def to_markdown(self) -> str:
         """Serialize to YAML frontmatter + Markdown body string."""
@@ -38,7 +41,19 @@ class IssueMarkdown:
         if self.issue_type is not None:
             meta["type"] = self.issue_type
         frontmatter = yaml.dump(meta, allow_unicode=True, sort_keys=False).rstrip()
-        return f"---\n{frontmatter}\n---\n\n{self.description}"
+        body = f"---\n{frontmatter}\n---\n\n{self.description}"
+        if self.comments:
+            body += "\n\n---\n\n## 코멘트\n\n"
+            for comment in self.comments:
+                author = (comment.get("author") or {}).get("name", "알 수 없음")
+                created_ms = comment.get("created")
+                if created_ms:
+                    dt = datetime.fromtimestamp(created_ms / 1000, tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+                else:
+                    dt = ""
+                text = comment.get("text") or ""
+                body += f"**{author}** · {dt}\n\n{text}\n\n---\n\n"
+        return body
 
     @classmethod
     def from_markdown(cls, text: str) -> "IssueMarkdown":
