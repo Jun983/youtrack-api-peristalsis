@@ -15,10 +15,15 @@ def main() -> None:
         default=".",
         help="Output file or directory (default: current directory)",
     )
+    parser.add_argument(
+        "--with-comments",
+        action="store_true",
+        help="Include issue comments in the output",
+    )
     args = parser.parse_args()
 
     sync = IssueSync()
-    path = sync.pull_issue(args.issue_id, output=Path(args.output))
+    path = sync.pull_issue(args.issue_id, output=Path(args.output), with_comments=args.with_comments)
     print(f"Saved: {path}")
 
 

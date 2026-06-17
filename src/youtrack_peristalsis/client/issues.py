@@ -17,6 +17,8 @@ _ISSUE_FIELDS = (
     "type(id,name)"
 )
 
+_COMMENT_FIELDS = "id,text,created,updated,author(id,name)"
+
 
 class IssuesClient:
     """YouTrack Issues API."""
@@ -98,6 +100,13 @@ class IssuesClient:
             json=body,
         )
         return self._parse(response)
+
+    def list_comments(self, issue_id: str) -> list[dict[str, Any]]:
+        response = self._client.get(
+            f"/issues/{issue_id}/comments",
+            params={"fields": _COMMENT_FIELDS},
+        )
+        return self._parse_list(response)
 
     @staticmethod
     def _parse(response: httpx.Response) -> dict[str, Any]:

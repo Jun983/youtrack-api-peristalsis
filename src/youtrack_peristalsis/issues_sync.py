@@ -12,7 +12,10 @@ from youtrack_peristalsis.issue_format import IssueMarkdown, read_issue_file, wr
 from youtrack_peristalsis.issues import resolve_issue_id
 
 
-def issue_to_markdown(issue: dict[str, Any]) -> IssueMarkdown:
+def issue_to_markdown(
+    issue: dict[str, Any],
+    comments: list[dict[str, Any]] | None = None,
+) -> IssueMarkdown:
     project = issue.get("project") or {}
     state = issue.get("state") or {}
     assignee = issue.get("assignee") or {}
@@ -28,6 +31,7 @@ def issue_to_markdown(issue: dict[str, Any]) -> IssueMarkdown:
         assignee=assignee.get("name"),
         priority=priority.get("name"),
         issue_type=issue_type.get("name"),
+        comments=tuple(comments) if comments else (),
     )
 
 
@@ -47,14 +51,15 @@ class IssueSync:
     def resolve_issue_id(self, issue_id: str) -> str:
         return resolve_issue_id(issue_id, self._settings.issue_prefix)
 
-    def pull_issue(self, issue_id: str, *, output: Path) -> Path:
+    def pull_issue(self, issue_id: str, *, output: Path, with_comments: bool = False) -> Path:
         """Fetch a YouTrack issue and save it as a markdown file."""
         resolved_id = self.resolve_issue_id(issue_id)
         with YouTrackClient(self._settings) as http:
             issues = IssuesClient(http)
             issue = issues.get(resolved_id)
+            comments = issues.list_comments(resolved_id) if with_comments else None
 
-        md = issue_to_markdown(issue)
+        md = issue_to_markdown(issue, comments=comments)
         path = resolve_output_path(issue=issue, output=output)
         write_issue_file(path, md)
         return path
